@@ -1,0 +1,224 @@
+# KLA Image Restoration — Default Configuration
+
+# ============================================================
+# DATASET
+# ============================================================
+dataset:
+  gt_dir: "train/GT"
+  noisy_dir: "train/NoisyLR"
+  train_ratio: 0.80
+  val_ratio: 0.10
+  test_ratio: 0.10
+  seed: 42
+
+  # Crop configuration
+  scale: 2
+  lr_patch_size: 64 # LR patch: 64×64
+  # GT patch: 128×128 (64×2)
+
+# ============================================================
+# MODEL
+# ============================================================
+model:
+  # Architecture
+  channels: 64
+  blocks: 12
+  scale: 2
+
+  # V2 specific features
+  use_degradation_encoder: true
+  use_attention: true
+  use_high_frequency_branch: true
+  use_edge_branch: true
+  use_global_residual: true
+
+  # Branches
+  attention_reduction: 16
+  hf_branch_strength: 0.5
+  edge_branch_strength: 0.3
+
+# ============================================================
+# TRAINING
+# ============================================================
+training:
+  epochs: 50
+  batch_size: 16
+
+  # Optimizer
+  optimizer: "adamw"
+  learning_rate: 1.0e-3
+  weight_decay: 1.0e-5
+  beta1: 0.9
+  beta2: 0.999
+
+  # Scheduler
+  scheduler: "cosine" # cosine, step, plateau
+  warmup_epochs: 5
+
+  # AMP
+  use_amp: true
+
+  # Gradient
+  use_gradient_clipping: true
+  max_grad_norm: 1.0
+
+  # Early stopping
+  use_early_stopping: true
+  patience: 10
+
+  # Validation
+  validation_frequency: 1 # Every N epochs
+
+  # Checkpointing
+  save_frequency: 1
+  keep_last_k: 3
+
+# ============================================================
+# DATA AUGMENTATION
+# ============================================================
+augmentation:
+  # Spatial
+  use_random_crop: true
+  use_random_flip: true
+  use_random_rotation: false
+
+  # Hard sample mining
+  use_hard_sample_mining: false
+  hard_sample_ratio: 0.15
+
+# ============================================================
+# SYNTHETIC DEGRADATION
+# ============================================================
+synthetic_degradation:
+  enabled: true # Use synthetic data in stage 2
+
+  # Gaussian noise
+  gaussian_sigma_min: 0.010
+  gaussian_sigma_max: 0.050
+  gaussian_prob: 0.4
+
+  # Speckle noise
+  speckle_strength_min: 0.05
+  speckle_strength_max: 0.20
+  speckle_prob: 0.3
+
+  # Downsampling
+  downsample_prob: 0.3
+  downsample_method: "bicubic" # bicubic, bilinear, area
+
+# ============================================================
+# LOSS
+# ============================================================
+loss:
+  # Pixel loss
+  use_charbonnier: true
+  charbonnier_epsilon: 1.0e-3
+
+  # Loss weights
+  pixel_weight: 0.65 # Charbonnier/L1 + MSE
+  l1_weight: 0.65
+  mse_weight: 0.15
+  gradient_weight: 0.10
+  frequency_weight: 0.05
+  perceptual_weight: 0.05
+
+  # Gradient loss
+  use_gradient_loss: true
+  gradient_loss_type: "sobel" # sobel, laplacian
+
+  # Frequency loss
+  use_frequency_loss: true
+  frequency_loss_method: "fft" # fft, learnable_hpf
+
+  # Perceptual loss
+  use_perceptual_loss: false # Optional, uses LPIPS
+  perceptual_loss_scale: "conv3_4"
+
+# ============================================================
+# CURRICULUM
+# ============================================================
+curriculum:
+  enabled: true
+
+  # Stage 1: Real paired data only
+  stage1:
+    epochs: 15
+    data: "real"
+    focus: "pixel"
+
+  # Stage 2: Real + synthetic degradation
+  stage2:
+    epochs: 20
+    data: "mixed"
+    synthetic_ratio: 0.3
+    focus: "generalization"
+
+  # Stage 3: Real paired fine-tuning
+  stage3:
+    epochs: 10
+    data: "real"
+    use_lower_lr: true
+    lr_scale: 0.5
+    focus: "detail"
+    gradient_weight: 0.15
+    frequency_weight: 0.10
+
+# ============================================================
+# EVALUATION
+# ============================================================
+evaluation:
+  # Metrics
+  compute_psnr: true
+  compute_ssim: true
+  compute_lpips: false # Expensive, optional
+  compute_mse: true
+  compute_mae: true
+
+  # Clipping for metrics
+  clip_output: true
+  output_min: 0.0
+  output_max: 1.0
+
+  # Latency measurement
+  measure_latency: true
+  latency_warmup: 10
+  latency_runs: 100
+
+# ============================================================
+# PATHS
+# ============================================================
+paths:
+  checkpoint_dir: "checkpoints"
+  result_dir: "results"
+  output_dir: "outputs"
+
+  # Model-specific paths
+  baseline_checkpoint: "checkpoints/baseline/best_dncnn.pth"
+  v1_checkpoint: "checkpoints/v1/best_v1.pth"
+  v2_checkpoint: "checkpoints/v2/best_v2.pth"
+
+# ============================================================
+# REPRODUCIBILITY
+# ============================================================
+reproducibility:
+  seed: 42
+  deterministic: true
+  cudnn_benchmark: false
+
+# ============================================================
+# HARDWARE
+# ============================================================
+hardware:
+  device: "cuda" # cuda, cpu
+  num_workers: 4
+  pin_memory: true
+  mixed_precision: "fp16"
+
+# ============================================================
+# LOGGING
+# ============================================================
+logging:
+  level: "INFO"
+  save_interval: 1
+  tensorboard: false
+  wandb: false

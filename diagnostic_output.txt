@@ -1,0 +1,84 @@
+E:\COLLEGE\AI\PROJECT\KLA_Image_Restoration-main\diagnose_training.py:55: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = GradScaler()
+C:\Users\AAKASH P\AppData\Local\Programs\Python\Python311\Lib\site-packages\torch\cuda\amp\grad_scaler.py:31: UserWarning: torch.cuda.amp.GradScaler is enabled, but CUDA is not available.  Disabling.
+  super().__init__(
+E:\COLLEGE\AI\PROJECT\KLA_Image_Restoration-main\diagnose_training.py:96: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+C:\Users\AAKASH P\AppData\Local\Programs\Python\Python311\Lib\site-packages\torch\cuda\amp\autocast_mode.py:54: UserWarning: CUDA is not available or torch_xla is imported. Disabling autocast.
+  super().__init__(
+E:\COLLEGE\AI\PROJECT\KLA_Image_Restoration-main\diagnose_training.py:104: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+E:\COLLEGE\AI\PROJECT\KLA_Image_Restoration-main\diagnose_training.py:119: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast():
+
+======================================================================
+GPU TRAINING DIAGNOSTICS
+======================================================================
+
+Device: cpu
+CUDA available: False
+
+[1] Building model...
+  Parameters: 2,204,705
+
+[2] Building loss and optimizer...
+  Loss: RestorationLoss
+  Optimizer: AdamW (lr=1e-3)
+  GradScaler: enabled
+
+[3] Building dataloaders...
+Dataset split: 2560 train, 320 val, 320 test
+  Train batches: 640
+  Val batches: 320
+
+[4] Getting first training batch...
+  Noisy shape: torch.Size([4, 1, 64, 64]), range: [0.0054, 1.4914]
+  GT shape: torch.Size([4, 1, 128, 128]), range: [0.0094, 1.0000]
+
+[5] Testing forward pass...
+  Output shape: torch.Size([4, 1, 128, 128])
+  Output range: [-0.051606, 0.067905]
+  Output mean: 0.008426
+  Output std: 0.021984
+  Output finite: True
+
+[6] Testing forward with AMP (autocast)...
+  Output dtype (inside autocast): torch.float32
+  Output range: [-0.051606, 0.067905]
+  Output finite: True
+
+[7] Testing loss computation...
+  Loss dtype: torch.float32
+  Loss value: 0.429259
+  Loss finite: True
+  Loss components:
+    l1: 0.378032
+    mse: 0.210815
+    gradient: 0.034577
+    frequency: 148.458115
+    total: 0.429259
+
+[8] Testing backward pass...
+  Gradients computed: yes
+    degradation_encoder.fc1.weight: grad_norm=1.531615e-01, finite=True
+    degradation_encoder.fc1.bias: grad_norm=1.238207e-01, finite=True
+    degradation_encoder.fc2.weight: grad_norm=8.251743e-01, finite=True
+  Gradient norm stats: min=2.884215e-07, max=7.234294e+00, mean=2.100955e-01
+
+[9] Testing gradient clipping...
+  Clipped norm: 13.424104
+  Max grad norm: 1.0
+  Clipping applied: True
+
+[10] Testing optimizer.step()...
+  Optimizer step completed
+
+[11] Checking parameter changes...
+  Parameter change stats:
+    Min: 5.944967e-04
+    Max: 1.000002e-03
+    Mean: 9.954868e-04
+  Parameters updated: True
+
+======================================================================
+

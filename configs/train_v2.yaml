@@ -1,0 +1,134 @@
+# Training configuration for Unified Restorer V2
+# Target: 2M–5M parameters, maximum detail preservation
+
+training:
+  epochs: 60
+  batch_size: 16
+  learning_rate: 1.0e-3
+  weight_decay: 1.0e-5
+
+  optimizer: "adamw"
+  scheduler: "cosine"
+  warmup_epochs: 5
+  use_amp: true
+  use_gradient_clipping: true
+  max_grad_norm: 1.0
+
+  # Early stopping
+  use_early_stopping: true
+  patience: 15
+
+loss:
+  # Advanced loss formulation
+  use_charbonnier: true
+  charbonnier_epsilon: 1.0e-3
+
+  # Pixel reconstruction
+  l1_weight: 0.65
+  mse_weight: 0.15
+
+  # Detail preservation
+  gradient_weight: 0.10
+  frequency_weight: 0.001
+
+  # Perceptual quality (if available)
+  perceptual_weight: 0.0 # Set to 0.05 if LPIPS enabled
+
+  use_gradient_loss: true
+  gradient_loss_type: "sobel"
+  use_frequency_loss: true
+  frequency_loss_method: "fft"
+  use_perceptual_loss: false
+
+augmentation:
+  use_random_crop: true
+  use_random_flip: true
+  use_random_rotation: false
+  use_hard_sample_mining: true
+  hard_sample_ratio: 0.20
+
+# Synthetic degradation for better generalization
+synthetic_degradation:
+  enabled: true
+
+  gaussian_sigma_min: 0.015
+  gaussian_sigma_max: 0.060
+  gaussian_prob: 0.35
+
+  speckle_strength_min: 0.05
+  speckle_strength_max: 0.20
+  speckle_prob: 0.35
+
+  downsample_prob: 0.30
+  downsample_method: "bicubic"
+
+# Multi-stage curriculum training
+curriculum:
+  enabled: true
+
+  stage1:
+    name: "Real paired data"
+    epochs: 20
+    data: "real"
+    loss_multipliers:
+      pixel: 1.0
+      gradient: 0.5
+      frequency: 0.2
+
+  stage2:
+    name: "Real + Synthetic"
+    epochs: 25
+    data: "mixed"
+    synthetic_ratio: 0.4
+    loss_multipliers:
+      pixel: 1.0
+      gradient: 0.8
+      frequency: 0.4
+
+  stage3:
+    name: "Real paired fine-tuning"
+    epochs: 15
+    data: "real"
+    use_lower_lr: true
+    lr_scale: 0.5
+    loss_multipliers:
+      pixel: 0.8
+      gradient: 1.2
+      frequency: 0.8
+
+model:
+  # Core architecture
+  channels: 64
+  blocks: 16 # More blocks than V1 for better capacity
+  scale: 2
+
+  # Advanced features
+  use_degradation_encoder: true
+  degradation_embedding_dim: 32
+
+  use_attention: true
+  attention_reduction: 16
+  attention_type: "channel" # channel, spatial, or cbam
+
+  # Detail preservation
+  use_high_frequency_branch: true
+  hf_branch_strength: 0.5
+
+  use_edge_branch: true
+  edge_branch_strength: 0.3
+
+  # Skip connections
+  use_global_residual: true
+  use_dense_connections: false
+
+# Degradation encoder configuration
+degradation_encoder:
+  input_features:
+    - "mean"
+    - "std"
+    - "min"
+    - "max"
+    - "out_of_range_ratio"
+
+  embedding_dim: 32
+  hidden_dim: 64

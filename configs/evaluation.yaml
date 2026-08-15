@@ -1,0 +1,112 @@
+# Evaluation configuration
+
+evaluation:
+  # Dataset split for evaluation
+  test_ratio: 0.10
+  seed: 42
+
+  # Metrics
+  metrics:
+    psnr:
+      enabled: true
+      clip_before_compute: true
+      range: [0, 1]
+
+    ssim:
+      enabled: true
+      clip_before_compute: true
+      range: [0, 1]
+
+    lpips:
+      enabled: false # Optional, computationally expensive
+      version: "vgg"
+      normalize: true
+
+    mse:
+      enabled: true
+
+    mae:
+      enabled: true
+
+  # Latency measurement
+  latency:
+    measure: true
+    device: "cuda"
+    warmup_runs: 10
+    eval_runs: 100
+    synchronize_cuda: true
+
+  # Model inference
+  batch_size: 1
+  save_predictions: true
+  save_residuals: true
+  save_visualizations: true
+
+# Robustness evaluation configuration
+robustness:
+  enabled: true
+
+  test_conditions:
+    - name: "Clean"
+      gaussian_sigma: 0.0
+      speckle_strength: 0.0
+
+    - name: "Low Gaussian"
+      gaussian_sigma: 0.020
+      speckle_strength: 0.0
+
+    - name: "High Gaussian"
+      gaussian_sigma: 0.060
+      speckle_strength: 0.0
+
+    - name: "Low Speckle"
+      gaussian_sigma: 0.0
+      speckle_strength: 0.05
+
+    - name: "High Speckle"
+      gaussian_sigma: 0.0
+      speckle_strength: 0.20
+
+    - name: "Gaussian + Speckle"
+      gaussian_sigma: 0.030
+      speckle_strength: 0.10
+
+    - name: "Extreme"
+      gaussian_sigma: 0.080
+      speckle_strength: 0.25
+
+# Ablation study configuration
+ablation:
+  base_model: "noise_aware"
+
+  variants:
+    - name: "V1_base"
+      config: "configs/train_v1.yaml"
+      use_attention: true
+      use_degradation_encoder: true
+      use_high_frequency_branch: false
+      use_edge_branch: false
+
+    - name: "V2_no_hf"
+      use_attention: true
+      use_degradation_encoder: true
+      use_high_frequency_branch: false
+      use_edge_branch: false
+
+    - name: "V2_no_edge"
+      use_attention: true
+      use_degradation_encoder: true
+      use_high_frequency_branch: true
+      use_edge_branch: false
+
+    - name: "V2_no_attention"
+      use_attention: false
+      use_degradation_encoder: true
+      use_high_frequency_branch: true
+      use_edge_branch: true
+
+    - name: "V2_full"
+      use_attention: true
+      use_degradation_encoder: true
+      use_high_frequency_branch: true
+      use_edge_branch: true

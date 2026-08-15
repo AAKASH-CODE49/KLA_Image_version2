@@ -1,0 +1,55 @@
+# Training configuration for Unified Restorer V1
+# Target: ~1.3M parameters, improved detail preservation over baselines
+
+training:
+  epochs: 50
+  batch_size: 16
+  learning_rate: 1.0e-3
+  weight_decay: 1.0e-5
+
+  optimizer: "adamw"
+  scheduler: "cosine"
+  warmup_epochs: 5
+  use_amp: true
+  use_gradient_clipping: true
+  max_grad_norm: 1.0
+
+loss:
+  # Improved loss formulation
+  use_charbonnier: true
+  charbonnier_epsilon: 1.0e-3
+
+  l1_weight: 0.70
+  mse_weight: 0.15
+  gradient_weight: 0.10
+  frequency_weight: 0.05
+
+  use_gradient_loss: true
+  gradient_loss_type: "sobel"
+  use_frequency_loss: true
+  frequency_loss_method: "fft"
+  use_perceptual_loss: false
+
+augmentation:
+  use_random_crop: true
+  use_random_flip: true
+  use_hard_sample_mining: true
+  hard_sample_ratio: 0.15
+
+synthetic_degradation:
+  enabled: false # V1 uses only real data
+
+model:
+  channels: 64
+  blocks: 12
+  use_attention: true
+  attention_reduction: 16
+
+  use_degradation_encoder: true # Condition on input degradation
+  use_high_frequency_branch: false # V1 does not use HF branch
+  use_edge_branch: false
+  use_global_residual: true
+
+curriculum:
+  enabled: false # V1 trains in single stage
+
